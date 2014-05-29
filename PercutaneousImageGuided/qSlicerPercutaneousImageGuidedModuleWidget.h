@@ -39,9 +39,10 @@ public:
   qSlicerPercutaneousImageGuidedModuleWidget(QWidget *parent=0);
   virtual ~qSlicerPercutaneousImageGuidedModuleWidget();
 
+  // Tabs order
   enum
   {
-    DICOM_TAB,
+    DICOM_TAB = 0,
     TARGETS_TAB,
     WORKSPACE_TAB,
     REGISTRATION_TAB,
@@ -59,13 +60,8 @@ public slots:
   void onPostInsButtonToggled(bool pressed);
 
   // DICOM
-  void onDICOMDirectoryChanged(const QString& directory);
-  void onDICOMManagerClicked();
 
   // Targets
-  void onTargetListChanged(const QString& id);
-  void onAddTargetClicked();
-  void onRemoveTargetClicked();
 
   // Parameter Nodes
   void setActiveParameterNode(vtkMRMLPercutaneousImageGuidedParameterNode* activeNode);

@@ -8,19 +8,51 @@ set(${KIT}_INCLUDE_DIRECTORIES
   )
 
 set(${KIT}_SRCS
+  qSlicer${MODULE_NAME}DICOMWidget.cxx
+  qSlicer${MODULE_NAME}DICOMWidget.h
+  qSlicer${MODULE_NAME}TargetsWidget.cxx
+  qSlicer${MODULE_NAME}TargetsWidget.h
+  qSlicer${MODULE_NAME}WorkspaceWidget.cxx
+  qSlicer${MODULE_NAME}WorkspaceWidget.h
+  qSlicer${MODULE_NAME}RegistrationWidget.cxx
+  qSlicer${MODULE_NAME}RegistrationWidget.h
+  qSlicer${MODULE_NAME}RobotWidget.cxx
+  qSlicer${MODULE_NAME}RobotWidget.h
+  qSlicer${MODULE_NAME}ResliceWidget.cxx
+  qSlicer${MODULE_NAME}ResliceWidget.h
   )
 
 set(${KIT}_MOC_SRCS
+  qSlicer${MODULE_NAME}DICOMWidget.h
+  qSlicer${MODULE_NAME}TargetsWidget.h
+  qSlicer${MODULE_NAME}WorkspaceWidget.h
+  qSlicer${MODULE_NAME}RegistrationWidget.h
+  qSlicer${MODULE_NAME}RobotWidget.h
+  qSlicer${MODULE_NAME}ResliceWidget.h
   )
 
 set(${KIT}_UI_SRCS
+  ../Resources/UI/qSlicer${MODULE_NAME}DICOMWidget.ui
+  ../Resources/UI/qSlicer${MODULE_NAME}TargetsWidget.ui
+  ../Resources/UI/qSlicer${MODULE_NAME}WorkspaceWidget.ui
+  ../Resources/UI/qSlicer${MODULE_NAME}RegistrationWidget.ui
+  ../Resources/UI/qSlicer${MODULE_NAME}RobotWidget.ui
+  ../Resources/UI/qSlicer${MODULE_NAME}ResliceWidget.ui
   )
 
 set(${KIT}_RESOURCES
+  ../Resources/UI/qSlicer${MODULE_NAME}DICOMWidget.ui
+  ../Resources/UI/qSlicer${MODULE_NAME}TargetsWidget.ui
+  ../Resources/UI/qSlicer${MODULE_NAME}WorkspaceWidget.ui
+  ../Resources/UI/qSlicer${MODULE_NAME}RegistrationWidget.ui
+  ../Resources/UI/qSlicer${MODULE_NAME}RobotWidget.ui
+  ../Resources/UI/qSlicer${MODULE_NAME}ResliceWidget.ui
   )
 
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleLogic
+  vtkSlicer${MODULE_NAME}ModuleMRML
+  vtkSlicerMarkupsModuleMRML
   )
 
 #-----------------------------------------------------------------------------
