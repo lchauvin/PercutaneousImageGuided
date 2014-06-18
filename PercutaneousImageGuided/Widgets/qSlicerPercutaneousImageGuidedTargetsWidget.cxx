@@ -16,7 +16,7 @@
   This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc.
   and was partially funded by NIH grant 3P41RR013218-12S1
 
-==============================================================================*/
+  ==============================================================================*/
 
 // Targets Widgets includes
 #include "qSlicerPercutaneousImageGuidedTargetsWidget.h"
@@ -43,6 +43,8 @@ public:
 
 private:
   vtkMRMLPercutaneousImageGuidedParameterNode* activeParamNode;
+  vtkMRMLMarkupsFiducialNode* previousTargetList;
+  vtkMRMLMarkupsFiducialNode* activeTargetList;
 };
 
 // --------------------------------------------------------------------------
@@ -51,6 +53,9 @@ qSlicerPercutaneousImageGuidedTargetsWidgetPrivate
   qSlicerPercutaneousImageGuidedTargetsWidget& object)
   : q_ptr(&object)
 {
+  this->activeParamNode = NULL;
+  this->previousTargetList = NULL;
+  this->activeTargetList = NULL;
 }
 
 // --------------------------------------------------------------------------
@@ -67,19 +72,22 @@ void qSlicerPercutaneousImageGuidedTargetsWidgetPrivate
 qSlicerPercutaneousImageGuidedTargetsWidget
 ::qSlicerPercutaneousImageGuidedTargetsWidget(QWidget* parentWidget)
   : Superclass( parentWidget )
-  , d_ptr( new qSlicerPercutaneousImageGuidedTargetsWidgetPrivate(*this) )
+    , d_ptr( new qSlicerPercutaneousImageGuidedTargetsWidgetPrivate(*this) )
 {
   Q_D(qSlicerPercutaneousImageGuidedTargetsWidget);
   d->setupUi(this);
 
   connect(d->TargetListSelector, SIGNAL(currentNodeIDChanged(const QString&)),
-	  this, SLOT(onTargetListChanged(const QString&)));
+          this, SLOT(onTargetListChanged(const QString&)));
 
   connect(d->AddTargetButton, SIGNAL(clicked()),
-	  this, SLOT(onAddTargetClicked()));
+          this, SLOT(onAddTargetClicked()));
 
   connect(d->RemoveTargetButton, SIGNAL(clicked()),
-	  this, SLOT(onRemoveTargetClicked()));
+          this, SLOT(onRemoveTargetClicked()));
+
+  connect(d->TargetListWidget, SIGNAL(itemChanged(QTableWidgetItem*)),
+          this, SLOT(onTargetItemChanged(QTableWidgetItem*)));
 }
 
 //-----------------------------------------------------------------------------
@@ -95,18 +103,15 @@ void qSlicerPercutaneousImageGuidedTargetsWidget
 {
   Q_D(qSlicerPercutaneousImageGuidedTargetsWidget);
 
-  vtkMRMLPercutaneousImageGuidedParameterNode* currentActiveNode = d->activeParamNode;
-  if (currentActiveNode)
+  if (d->activeParamNode != activeNode)
     {
-    this->qvtkDisconnect(currentActiveNode, vtkMRMLPercutaneousImageGuidedParameterNode::TargetsModifiedEvent,
-			 this, SLOT(refreshWidget()));
+    d->activeParamNode = activeNode;
     }
 
-  d->activeParamNode = activeNode;
-  this->refreshWidget();
-
-  this->qvtkConnect(d->activeParamNode, vtkMRMLPercutaneousImageGuidedParameterNode::TargetsModifiedEvent,
-		    this, SLOT(refreshWidget()));
+  if (d->activeParamNode)
+    {
+    d->TargetListSelector->setCurrentNodeID(d->activeParamNode->GetTargetListNodeID());
+    }
 }
 
 // --------------------------------------------------------------------------
@@ -120,22 +125,64 @@ vtkMRMLPercutaneousImageGuidedParameterNode* qSlicerPercutaneousImageGuidedTarge
 
 //-----------------------------------------------------------------------------
 void qSlicerPercutaneousImageGuidedTargetsWidget::onTargetListChanged(const QString& id)
-{     
+{
+  Q_D(qSlicerPercutaneousImageGuidedTargetsWidget);
+
   if (id.isEmpty())
     {
+    d->TargetListWidget->clearContents();
+    d->TargetListWidget->setRowCount(0);
     return;
     }
 
   vtkMRMLPercutaneousImageGuidedParameterNode* currentActiveNode = this->getActiveParameterNode();
   if (currentActiveNode)
     {
-    currentActiveNode->SetAndObserveTargetListNodeID(id.toStdString().c_str());
+    const char* targetListNodeID = id.toStdString().c_str();
+    currentActiveNode->SetAndObserveTargetListNodeID(targetListNodeID);
+    d->activeTargetList = vtkMRMLMarkupsFiducialNode::SafeDownCast(
+      this->mrmlScene()->GetNodeByID(targetListNodeID));
+    }
+
+  // Observe Markups events
+  if (d->activeTargetList)
+    {
+    // Update widget with new target list
+    this->refreshWidget();
+
+    // Observe Markups events
+    this->qvtkReconnect(d->previousTargetList,
+                        d->activeTargetList, vtkMRMLMarkupsFiducialNode::LockModifiedEvent,
+                        this, SLOT(refreshWidget()));
+
+    this->qvtkReconnect(d->previousTargetList,
+                        d->activeTargetList, vtkMRMLMarkupsFiducialNode::LabelFormatModifiedEvent,
+                        this, SLOT(refreshWidget()));
+
+    this->qvtkReconnect(d->previousTargetList,
+                        d->activeTargetList, vtkMRMLMarkupsFiducialNode::PointModifiedEvent,
+                        this, SLOT(refreshWidget()));
+
+    this->qvtkReconnect(d->previousTargetList,
+                        d->activeTargetList, vtkMRMLMarkupsFiducialNode::NthMarkupModifiedEvent,
+                        this, SLOT(refreshWidget()));
+
+    this->qvtkReconnect(d->previousTargetList,
+                        d->activeTargetList, vtkMRMLMarkupsFiducialNode::MarkupRemovedEvent,
+                        this, SLOT(refreshWidget()));
+
+    this->qvtkReconnect(d->previousTargetList,
+                        d->activeTargetList, vtkMRMLMarkupsFiducialNode::MarkupAddedEvent,
+                        this, SLOT(refreshWidget()));
+
+    // Save current target list
+    d->previousTargetList = d->activeTargetList;
     }
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerPercutaneousImageGuidedTargetsWidget::onAddTargetClicked()
-{   
+{
   if (!this->mrmlScene())
     {
     return;
@@ -156,7 +203,7 @@ void qSlicerPercutaneousImageGuidedTargetsWidget::onAddTargetClicked()
 
 //-----------------------------------------------------------------------------
 void qSlicerPercutaneousImageGuidedTargetsWidget::onRemoveTargetClicked()
-{   
+{
   Q_D(qSlicerPercutaneousImageGuidedTargetsWidget);
 
   if (!d->TargetListSelector || !d->TargetListWidget)
@@ -177,7 +224,7 @@ void qSlicerPercutaneousImageGuidedTargetsWidget::refreshWidget()
 {
   Q_D(qSlicerPercutaneousImageGuidedTargetsWidget);
 
-  if (!this->mrmlScene() || 
+  if (!this->mrmlScene() ||
       !d->TargetListSelector || !d->TargetListWidget)
     {
     return;
@@ -185,55 +232,86 @@ void qSlicerPercutaneousImageGuidedTargetsWidget::refreshWidget()
 
   std::cerr << "Update Targets Widget" << std::endl;
 
+  bool blockSignal = d->TargetListWidget->blockSignals(true);
+
   // Clear table widget
   d->TargetListWidget->clearContents();
   d->TargetListWidget->setRowCount(0);
 
-  // Set new active target list
-  vtkMRMLPercutaneousImageGuidedParameterNode* currentActiveNode = this->getActiveParameterNode();
-  if (currentActiveNode)
+  if (d->activeTargetList)
     {
-    const char* targetNodeID = currentActiveNode->GetTargetListNodeID();
-    d->TargetListSelector->setCurrentNodeID(targetNodeID);
-
-    // Re-populate table widget 
-    vtkMRMLMarkupsFiducialNode* markupsList = vtkMRMLMarkupsFiducialNode::SafeDownCast(
-      this->mrmlScene()->GetNodeByID(targetNodeID));
-    if (markupsList)
+    int numberOfFiducials = d->activeTargetList->GetNumberOfFiducials();
+    for (int i = 0; i < numberOfFiducials; ++i)
       {
-      int numberOfFiducials = markupsList->GetNumberOfFiducials();
-      for (int i = 0; i < numberOfFiducials; ++i)
-	{
-	d->TargetListWidget->insertRow(i);
+      d->TargetListWidget->insertRow(i);
 
-	// Get Markup data
-	QString targetName = QString::fromStdString(markupsList->GetNthFiducialLabel(i));
-	double targetPosition[3] = {0.0, 0.0, 0.0};
-	markupsList->GetNthFiducialPosition(i,targetPosition);
+      // Get Markup data
+      QString targetName = QString::fromStdString(d->activeTargetList->GetNthFiducialLabel(i));
+      double targetPosition[3] = {0.0, 0.0, 0.0};
+      d->activeTargetList->GetNthFiducialPosition(i,targetPosition);
 
-	QString targetPositionR = QString::number(targetPosition[0]);
-	QString targetPositionA = QString::number(targetPosition[1]);
-	QString targetPositionS = QString::number(targetPosition[2]);
+      QString targetPositionR = QString::number(targetPosition[0]);
+      QString targetPositionA = QString::number(targetPosition[1]);
+      QString targetPositionS = QString::number(targetPosition[2]);
 
-	// Create items
-	QTableWidgetItem* itemTargetName = new QTableWidgetItem(targetName);
-	QTableWidgetItem* itemTargetR    = new QTableWidgetItem(targetPositionR);
-	QTableWidgetItem* itemTargetA    = new QTableWidgetItem(targetPositionA);
-	QTableWidgetItem* itemTargetS    = new QTableWidgetItem(targetPositionS);
-	QTableWidgetItem* itemTargetVis  = new QTableWidgetItem();
+      // Create items
+      QTableWidgetItem* itemTargetName = new QTableWidgetItem(targetName);
+      QTableWidgetItem* itemTargetR    = new QTableWidgetItem(targetPositionR);
+      QTableWidgetItem* itemTargetA    = new QTableWidgetItem(targetPositionA);
+      QTableWidgetItem* itemTargetS    = new QTableWidgetItem(targetPositionS);
+      QTableWidgetItem* itemTargetVis  = new QTableWidgetItem();
 
-	// Update visibility
-	itemTargetVis->setCheckState(markupsList->GetNthFiducialVisibility(i) ? 
-				     Qt::Checked : 
-				     Qt::Unchecked);
+      // Update visibility
+      itemTargetVis->setCheckState(d->activeTargetList->GetNthFiducialVisibility(i) ?
+                                   Qt::Checked :
+                                   Qt::Unchecked);
 
-	// Update table widget
-	d->TargetListWidget->setItem(i,TARGET_VISIBILITY,itemTargetVis);
-	d->TargetListWidget->setItem(i,TARGET_NAME,itemTargetName);
-	d->TargetListWidget->setItem(i,TARGET_R,itemTargetR);
-	d->TargetListWidget->setItem(i,TARGET_A,itemTargetA);
-	d->TargetListWidget->setItem(i,TARGET_S,itemTargetS);
-	}
+      // Update table widget
+      d->TargetListWidget->setItem(i,TARGET_VISIBILITY,itemTargetVis);
+      d->TargetListWidget->setItem(i,TARGET_NAME,itemTargetName);
+      d->TargetListWidget->setItem(i,TARGET_R,itemTargetR);
+      d->TargetListWidget->setItem(i,TARGET_A,itemTargetA);
+      d->TargetListWidget->setItem(i,TARGET_S,itemTargetS);
       }
-    }  
+    }
+
+  d->TargetListWidget->blockSignals(blockSignal);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerPercutaneousImageGuidedTargetsWidget::onTargetItemChanged(QTableWidgetItem* itemModified)
+{
+  Q_D(qSlicerPercutaneousImageGuidedTargetsWidget);
+  
+  if (!d->activeTargetList || !itemModified || !d->TargetListWidget)
+    {
+    return;
+    }
+
+  int itemModifiedRow = itemModified->row();
+  switch(itemModified->column())
+    {
+    case TARGET_VISIBILITY:
+      {
+      bool targetVisibility = itemModified->checkState() == Qt::Checked;
+      d->activeTargetList->SetNthFiducialVisibility(itemModifiedRow,targetVisibility);
+      break;
+      }
+    case TARGET_NAME:
+      {
+      QString targetName = itemModified->text();
+      d->activeTargetList->SetNthFiducialLabel(itemModifiedRow,targetName.toStdString());
+      break;
+      }
+    case TARGET_R:
+    case TARGET_A:
+    case TARGET_S:
+      {
+      double r = d->TargetListWidget->item(itemModifiedRow,TARGET_R)->text().toDouble();
+      double a = d->TargetListWidget->item(itemModifiedRow,TARGET_A)->text().toDouble();
+      double s = d->TargetListWidget->item(itemModifiedRow,TARGET_S)->text().toDouble();
+      d->activeTargetList->SetNthFiducialPosition(itemModifiedRow,r,a,s);
+      break;
+      }
+    }
 }

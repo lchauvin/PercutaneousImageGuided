@@ -92,18 +92,12 @@ void qSlicerPercutaneousImageGuidedResliceWidget
 {
   Q_D(qSlicerPercutaneousImageGuidedResliceWidget);
 
-  vtkMRMLPercutaneousImageGuidedParameterNode* currentActiveNode = d->activeParamNode;
-  if (currentActiveNode)
+  if (d->activeParamNode != activeNode)
     {
-    this->qvtkDisconnect(currentActiveNode, vtkMRMLPercutaneousImageGuidedParameterNode::ResliceModifiedEvent,
-			 this, SLOT(refreshWidget()));
+    d->activeParamNode = activeNode;
     }
-
-  d->activeParamNode = activeNode;
+  
   this->refreshWidget();
-
-  this->qvtkConnect(d->activeParamNode, vtkMRMLPercutaneousImageGuidedParameterNode::ResliceModifiedEvent,
-		    this, SLOT(refreshWidget()));
 }
 
 // --------------------------------------------------------------------------

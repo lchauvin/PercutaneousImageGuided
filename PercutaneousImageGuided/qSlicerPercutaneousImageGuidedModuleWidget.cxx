@@ -138,17 +138,6 @@ void qSlicerPercutaneousImageGuidedModuleWidget::setup()
   connect(d->PostInsButton, SIGNAL(toggled(bool)),
 	  this, SLOT(onPostInsButtonToggled(bool)));
 
-  // DICOM
-
-  // Targets
-
-  // Workspace
-
-  // Registration
-  
-  // Robot
-
-  // Reslice
 }
 
 //-----------------------------------------------------------------------------
@@ -174,6 +163,31 @@ void qSlicerPercutaneousImageGuidedModuleWidget::enter()
 //-----------------------------------------------------------------------------
 void qSlicerPercutaneousImageGuidedModuleWidget::exit()
 {
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerPercutaneousImageGuidedModuleWidget::setActiveParameterNode(vtkMRMLPercutaneousImageGuidedParameterNode* activeNode)
+{
+  Q_D(qSlicerPercutaneousImageGuidedModuleWidget);
+
+  if (!activeNode)
+    {
+    return;
+    }
+  
+  // Set new active parameter node
+  d->setActiveParamNode(activeNode);
+
+  if (d->DICOMWidget && d->TargetsWidget && d->WorkspaceWidget &&
+      d->RegistrationWidget && d->RobotWidget && d->ResliceWidget)
+    {
+    d->DICOMWidget->setActiveParameterNode(activeNode);
+    d->TargetsWidget->setActiveParameterNode(activeNode);
+    d->WorkspaceWidget->setActiveParameterNode(activeNode);
+    d->RegistrationWidget->setActiveParameterNode(activeNode);
+    d->RobotWidget->setActiveParameterNode(activeNode);
+    d->ResliceWidget->setActiveParameterNode(activeNode);
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -314,78 +328,4 @@ void qSlicerPercutaneousImageGuidedModuleWidget::onPostInsButtonToggled(bool pre
   
   // Set Active parameter node
   this->setActiveParameterNode(d->getPostInsParamNode());
-}
-
-
-//-----------------------------------------------------------------------------
-void qSlicerPercutaneousImageGuidedModuleWidget::setActiveParameterNode(vtkMRMLPercutaneousImageGuidedParameterNode* activeNode)
-{
-  Q_D(qSlicerPercutaneousImageGuidedModuleWidget);
-
-  if (!activeNode)
-    {
-    return;
-    }
-  
-  // Set new active parameter node
-  d->setActiveParamNode(activeNode);
-
-  if (d->DICOMWidget && d->TargetsWidget)
-    {
-    d->DICOMWidget->setActiveParameterNode(activeNode);
-    d->TargetsWidget->setActiveParameterNode(activeNode);
-    }
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerPercutaneousImageGuidedModuleWidget::refreshAllWidgets()
-{
-  Q_D(qSlicerPercutaneousImageGuidedModuleWidget);
-
-  if (!d->getActiveParamNode())
-    {
-    return;
-    }
-  
-  this->refreshDICOMWidget();
-  this->refreshTargetsWidget();
-  this->refreshWorkspaceWidget();
-  this->refreshRegistrationWidget();
-  this->refreshRobotWidget();
-  this->refreshResliceWidget();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerPercutaneousImageGuidedModuleWidget::refreshDICOMWidget()
-{
-  std::cerr << "Update DICOM Widget" << std::endl;
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerPercutaneousImageGuidedModuleWidget::refreshTargetsWidget()
-{
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerPercutaneousImageGuidedModuleWidget::refreshWorkspaceWidget()
-{
-  std::cerr << "Update Workspace Widget" << std::endl;
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerPercutaneousImageGuidedModuleWidget::refreshRegistrationWidget()
-{
-  std::cerr << "Update Registration Widget" << std::endl;
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerPercutaneousImageGuidedModuleWidget::refreshRobotWidget()
-{
-  std::cerr << "Update Robot Widget" << std::endl;
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerPercutaneousImageGuidedModuleWidget::refreshResliceWidget()
-{
-  std::cerr << "Update Reslice Widget" << std::endl;
 }

@@ -54,26 +54,15 @@ public:
   virtual void exit();
 
 public slots:
+  // Parameter Nodes
+  void setActiveParameterNode(vtkMRMLPercutaneousImageGuidedParameterNode* activeNode);
+
+  // Change step buttons
   void onPreRegButtonToggled(bool pressed);
   void onRegButtonToggled(bool pressed);
   void onPostRegButtonToggled(bool pressed);
   void onPostInsButtonToggled(bool pressed);
 
-  // DICOM
-
-  // Targets
-
-  // Parameter Nodes
-  void setActiveParameterNode(vtkMRMLPercutaneousImageGuidedParameterNode* activeNode);
-
-  // Refresh widgets
-  void refreshAllWidgets();
-  void refreshDICOMWidget();
-  void refreshTargetsWidget();
-  void refreshWorkspaceWidget();
-  void refreshRegistrationWidget();
-  void refreshRobotWidget();
-  void refreshResliceWidget();
 
 protected:
   QScopedPointer<qSlicerPercutaneousImageGuidedModuleWidgetPrivate> d_ptr;

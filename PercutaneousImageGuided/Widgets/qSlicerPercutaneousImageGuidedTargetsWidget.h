@@ -23,6 +23,7 @@
 
 // Qt includes
 #include <qSlicerWidget.h>
+#include <QTableWidgetItem>
 
 // Targets Widgets includes
 #include "qSlicerPercutaneousImageGuidedModuleWidgetsExport.h"
@@ -59,6 +60,7 @@ public slots:
   void onTargetListChanged(const QString& id);
   void onAddTargetClicked();
   void onRemoveTargetClicked();
+  void onTargetItemChanged(QTableWidgetItem* itemModified);
 
 protected:
   QScopedPointer<qSlicerPercutaneousImageGuidedTargetsWidgetPrivate> d_ptr;
