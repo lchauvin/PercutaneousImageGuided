@@ -115,16 +115,6 @@
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="WorkspaceTab">
-         <attribute name="title">
-          <string>Workspace</string>
-         </attribute>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
-          <item>
-           <widget class="qSlicerPercutaneousImageGuidedWorkspaceWidget" name="WorkspaceWidget" native="true"/>
-          </item>
-         </layout>
-        </widget>
         <widget class="QWidget" name="RegistrationTab">
          <property name="enabled">
           <bool>true</bool>
@@ -201,12 +191,6 @@
    <slots>
     <slot>setMRMLScene(vtkMRMLScene*)</slot>
    </slots>
-  </customwidget>
-  <customwidget>
-   <class>qSlicerPercutaneousImageGuidedWorkspaceWidget</class>
-   <extends>QWidget</extends>
-   <header>qSlicerPercutaneousImageGuidedWorkspaceWidget.h</header>
-   <container>1</container>
   </customwidget>
   <customwidget>
    <class>qSlicerPercutaneousImageGuidedRobotWidget</class>

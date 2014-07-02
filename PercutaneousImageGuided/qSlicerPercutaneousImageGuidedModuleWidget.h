@@ -44,7 +44,6 @@ public:
   {
     DICOM_TAB = 0,
     TARGETS_TAB,
-    WORKSPACE_TAB,
     REGISTRATION_TAB,
     ROBOT_TAB,
     RESLICE_TAB

@@ -120,7 +120,6 @@ void qSlicerPercutaneousImageGuidedModuleWidget::setup()
   this->Superclass::setup();
 
   d->tabWidget->setTabEnabled(DICOM_TAB,true);
-  d->tabWidget->setTabEnabled(WORKSPACE_TAB,true);
   d->tabWidget->setTabEnabled(REGISTRATION_TAB,false);
   d->tabWidget->setTabEnabled(ROBOT_TAB,false);
   d->tabWidget->setTabEnabled(RESLICE_TAB,false);
@@ -178,12 +177,11 @@ void qSlicerPercutaneousImageGuidedModuleWidget::setActiveParameterNode(vtkMRMLP
   // Set new active parameter node
   d->setActiveParamNode(activeNode);
 
-  if (d->DICOMWidget && d->TargetsWidget && d->WorkspaceWidget &&
-      d->RegistrationWidget && d->RobotWidget && d->ResliceWidget)
+  if (d->DICOMWidget && d->TargetsWidget && d->RegistrationWidget && 
+      d->RobotWidget && d->ResliceWidget)
     {
     d->DICOMWidget->setActiveParameterNode(activeNode);
     d->TargetsWidget->setActiveParameterNode(activeNode);
-    d->WorkspaceWidget->setActiveParameterNode(activeNode);
     d->RegistrationWidget->setActiveParameterNode(activeNode);
     d->RobotWidget->setActiveParameterNode(activeNode);
     d->ResliceWidget->setActiveParameterNode(activeNode);
@@ -203,7 +201,6 @@ void qSlicerPercutaneousImageGuidedModuleWidget::onPreRegButtonToggled(bool pres
   // Activate / Deactivate tabs
   d->tabWidget->setTabEnabled(DICOM_TAB,true);
   d->tabWidget->setTabEnabled(TARGETS_TAB,true);
-  d->tabWidget->setTabEnabled(WORKSPACE_TAB,true);
   d->tabWidget->setTabEnabled(REGISTRATION_TAB,false);
   d->tabWidget->setTabEnabled(ROBOT_TAB,false);
   d->tabWidget->setTabEnabled(RESLICE_TAB,true);
@@ -238,7 +235,6 @@ void qSlicerPercutaneousImageGuidedModuleWidget::onRegButtonToggled(bool pressed
   // Activate / Deactivate tabs
   d->tabWidget->setTabEnabled(DICOM_TAB,true);
   d->tabWidget->setTabEnabled(TARGETS_TAB,false);
-  d->tabWidget->setTabEnabled(WORKSPACE_TAB,false);
   d->tabWidget->setTabEnabled(REGISTRATION_TAB,true);
   d->tabWidget->setTabEnabled(ROBOT_TAB,false);
   d->tabWidget->setTabEnabled(RESLICE_TAB,false);
@@ -273,7 +269,6 @@ void qSlicerPercutaneousImageGuidedModuleWidget::onPostRegButtonToggled(bool pre
   // Activate / Deactivate tabs
   d->tabWidget->setTabEnabled(DICOM_TAB,true);
   d->tabWidget->setTabEnabled(TARGETS_TAB,true);
-  d->tabWidget->setTabEnabled(WORKSPACE_TAB,false);
   d->tabWidget->setTabEnabled(REGISTRATION_TAB,false);
   d->tabWidget->setTabEnabled(ROBOT_TAB,true);
   d->tabWidget->setTabEnabled(RESLICE_TAB,true);
@@ -308,7 +303,6 @@ void qSlicerPercutaneousImageGuidedModuleWidget::onPostInsButtonToggled(bool pre
   // Activate / Deactivate tabs
   d->tabWidget->setTabEnabled(DICOM_TAB,true);
   d->tabWidget->setTabEnabled(TARGETS_TAB,true);
-  d->tabWidget->setTabEnabled(WORKSPACE_TAB,false);
   d->tabWidget->setTabEnabled(REGISTRATION_TAB,false);
   d->tabWidget->setTabEnabled(ROBOT_TAB,true);
   d->tabWidget->setTabEnabled(RESLICE_TAB,true);
