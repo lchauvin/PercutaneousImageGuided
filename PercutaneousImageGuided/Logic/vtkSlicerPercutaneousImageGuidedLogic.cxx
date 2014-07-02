@@ -19,6 +19,7 @@
 #include "vtkSlicerPercutaneousImageGuidedLogic.h"
 
 // MRML includes
+#include "vtkMRMLIGTLSessionManagerNode.h"
 #include "vtkMRMLPercutaneousImageGuidedParameterNode.h"
 #include <vtkMRMLScene.h>
 
@@ -67,6 +68,10 @@ void vtkSlicerPercutaneousImageGuidedLogic::RegisterNodes()
   vtkSmartPointer<vtkMRMLPercutaneousImageGuidedParameterNode> percutaneousImageGuidedParameterNode=
     vtkSmartPointer<vtkMRMLPercutaneousImageGuidedParameterNode>::New();
   this->GetMRMLScene()->RegisterNodeClass(percutaneousImageGuidedParameterNode.GetPointer());
+
+  vtkSmartPointer<vtkMRMLIGTLSessionManagerNode> sessionManagerNode =
+    vtkSmartPointer<vtkMRMLIGTLSessionManagerNode>::New();
+  this->GetMRMLScene()->RegisterNodeClass(sessionManagerNode.GetPointer());
 }
 
 //---------------------------------------------------------------------------

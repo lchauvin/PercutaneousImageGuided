@@ -24,6 +24,7 @@
 #include "qSlicerPercutaneousImageGuidedModuleExport.h"
 
 class qSlicerPercutaneousImageGuidedModuleWidgetPrivate;
+class vtkMRMLIGTLSessionManager;
 class vtkMRMLPercutaneousImageGuidedParameterNode;
 class vtkMRMLNode;
 
@@ -56,12 +57,16 @@ public slots:
   // Parameter Nodes
   void setActiveParameterNode(vtkMRMLPercutaneousImageGuidedParameterNode* activeNode);
 
+  // Setup
+  void onConnectClicked();
+  void onConnectorNodeConnected();
+  void onConnectorNodeDisconnected();
+  
   // Change step buttons
   void onPreRegButtonToggled(bool pressed);
   void onRegButtonToggled(bool pressed);
   void onPostRegButtonToggled(bool pressed);
   void onPostInsButtonToggled(bool pressed);
-
 
 protected:
   QScopedPointer<qSlicerPercutaneousImageGuidedModuleWidgetPrivate> d_ptr;

@@ -25,6 +25,8 @@
 #include "qSlicerPercutaneousImageGuidedModuleWidget.h"
 #include "ui_qSlicerPercutaneousImageGuidedModuleWidget.h"
 
+#include "vtkMRMLIGTLConnectorNode.h"
+#include "vtkMRMLIGTLSessionManagerNode.h"
 #include "vtkMRMLPercutaneousImageGuidedParameterNode.h"
 #include "vtkMRMLScene.h"
 
@@ -35,6 +37,12 @@ class qSlicerPercutaneousImageGuidedModuleWidgetPrivate: public Ui_qSlicerPercut
 public:
   qSlicerPercutaneousImageGuidedModuleWidgetPrivate();
   ~qSlicerPercutaneousImageGuidedModuleWidgetPrivate();
+
+  void setConnectorNode(vtkMRMLIGTLConnectorNode* cnode) { this->IGTLConnectorNode = cnode; }
+  vtkMRMLIGTLConnectorNode* getConnectorNode() { return this->IGTLConnectorNode; }
+
+  void setSessionManagerNode(vtkMRMLIGTLSessionManagerNode* snode) { this->IGTLSessionManagerNode = snode; }
+  vtkMRMLIGTLSessionManagerNode* getSessionManagerNode() { return this->IGTLSessionManagerNode; }
 
   void setPreRegParamNode(vtkMRMLPercutaneousImageGuidedParameterNode* preReg) { this->PreRegParamNode = preReg; } 
   vtkMRMLPercutaneousImageGuidedParameterNode* getPreRegParamNode() { return this->PreRegParamNode; }
@@ -52,6 +60,9 @@ public:
   vtkMRMLPercutaneousImageGuidedParameterNode* getActiveParamNode() { return this->ActiveParamNode; }
 
 private:
+  vtkMRMLIGTLConnectorNode* IGTLConnectorNode;
+  vtkMRMLIGTLSessionManagerNode* IGTLSessionManagerNode;
+
   vtkMRMLPercutaneousImageGuidedParameterNode* PreRegParamNode;
   vtkMRMLPercutaneousImageGuidedParameterNode* RegParamNode;
   vtkMRMLPercutaneousImageGuidedParameterNode* PostRegParamNode;
@@ -65,6 +76,9 @@ private:
 //-----------------------------------------------------------------------------
 qSlicerPercutaneousImageGuidedModuleWidgetPrivate::qSlicerPercutaneousImageGuidedModuleWidgetPrivate()
 {
+  this->IGTLConnectorNode      = NULL;
+  this->IGTLSessionManagerNode = NULL;
+
   this->PreRegParamNode	 = NULL;
   this->RegParamNode	 = NULL;
   this->PostRegParamNode = NULL;
@@ -123,6 +137,10 @@ void qSlicerPercutaneousImageGuidedModuleWidget::setup()
   d->tabWidget->setTabEnabled(REGISTRATION_TAB,false);
   d->tabWidget->setTabEnabled(ROBOT_TAB,false);
   d->tabWidget->setTabEnabled(RESLICE_TAB,false);
+
+  // Setup
+  connect(d->ConnectButton, SIGNAL(clicked()),
+	  this, SLOT(onConnectClicked()));
 
   // Steps
   connect(d->PreRegButton, SIGNAL(toggled(bool)),
@@ -186,6 +204,115 @@ void qSlicerPercutaneousImageGuidedModuleWidget::setActiveParameterNode(vtkMRMLP
     d->RobotWidget->setActiveParameterNode(activeNode);
     d->ResliceWidget->setActiveParameterNode(activeNode);
     }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerPercutaneousImageGuidedModuleWidget::onConnectClicked()
+{
+  Q_D(qSlicerPercutaneousImageGuidedModuleWidget);
+  
+  if (!this->mrmlScene())
+    {
+    return;
+    }
+
+  vtkMRMLIGTLConnectorNode* currentConnectorNode = d->getConnectorNode();
+  vtkMRMLIGTLSessionManagerNode* currentSessionManagerNode = d->getSessionManagerNode();
+
+  // Create Connector node if doesn't exists
+  if (!currentConnectorNode)
+    {
+    vtkMRMLIGTLConnectorNode* cnode = vtkMRMLIGTLConnectorNode::SafeDownCast(
+      this->mrmlScene()->CreateNodeByClass("vtkMRMLIGTLConnectorNode"));
+    if (cnode)
+      {
+      this->mrmlScene()->AddNode(cnode);
+      d->setConnectorNode(cnode);
+      currentConnectorNode = cnode;
+      }
+    }
+
+  // Create SessionManager node if doesn't exists
+  if (!currentSessionManagerNode)
+    {
+    vtkMRMLIGTLSessionManagerNode* snode = vtkMRMLIGTLSessionManagerNode::SafeDownCast(
+      this->mrmlScene()->CreateNodeByClass("vtkMRMLIGTLSessionManagerNode"));
+    if (snode)
+      {
+      this->mrmlScene()->AddNode(snode);
+      d->setSessionManagerNode(snode);
+      currentSessionManagerNode = snode;
+      }
+    }
+
+  if (currentConnectorNode && currentSessionManagerNode)
+    {
+    switch(currentConnectorNode->GetState())
+      {
+      case vtkMRMLIGTLConnectorNode::STATE_OFF:
+	{
+	int port = d->PortWidget->text().toInt();
+	std::string hostname(d->HostnameWidget->text().toStdString());
+	int type = d->ClientRadioButton->isChecked() ?
+	  vtkMRMLIGTLConnectorNode::TYPE_CLIENT :
+	  vtkMRMLIGTLConnectorNode::TYPE_SERVER;
+
+	currentConnectorNode->SetType(type);
+	currentConnectorNode->SetServerHostname(hostname);
+	currentConnectorNode->SetServerPort(port);
+	currentConnectorNode->Start();
+
+	currentSessionManagerNode->SetAndObserveConnectorNodeID(currentConnectorNode->GetID());
+
+	this->qvtkConnect(currentConnectorNode, vtkMRMLIGTLConnectorNode::ConnectedEvent,
+			  this, SLOT(onConnectorNodeConnected()));
+	this->qvtkConnect(currentConnectorNode, vtkMRMLIGTLConnectorNode::DisconnectedEvent,
+			  this, SLOT(onConnectorNodeDisconnected()));
+
+	break;
+	}
+
+      case vtkMRMLIGTLConnectorNode::STATE_WAIT_CONNECTION:
+      case vtkMRMLIGTLConnectorNode::STATE_CONNECTED:
+	{
+	currentConnectorNode->Stop();
+
+	// BUG: DisconnectedEvent is not triggered when calling Stop() method. Have to call function manually.
+	this->onConnectorNodeDisconnected();
+
+	this->qvtkDisconnect(currentConnectorNode, vtkMRMLIGTLConnectorNode::ConnectedEvent,
+			  this, SLOT(onConnectorNodeConnected()));
+	this->qvtkDisconnect(currentConnectorNode, vtkMRMLIGTLConnectorNode::DisconnectedEvent,
+			  this, SLOT(onConnectorNodeDisconnected()));
+
+	this->mrmlScene()->RemoveNode(currentSessionManagerNode);
+	this->mrmlScene()->RemoveNode(currentConnectorNode);
+
+	d->setSessionManagerNode(NULL);
+	d->setConnectorNode(NULL);
+
+	break;
+	}
+      }
+    }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerPercutaneousImageGuidedModuleWidget::onConnectorNodeConnected()
+{
+  Q_D(qSlicerPercutaneousImageGuidedModuleWidget); 
+
+  d->CommunicationGroupBox->setTitle("Communication : Connected");
+  d->ConnectButton->setText("Disconnect");
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerPercutaneousImageGuidedModuleWidget::onConnectorNodeDisconnected()
+{
+  Q_D(qSlicerPercutaneousImageGuidedModuleWidget); 
+
+  d->CommunicationGroupBox->setTitle("Communication : Disconnected");
+  d->ConnectButton->setText("Connect");
 }
 
 //-----------------------------------------------------------------------------

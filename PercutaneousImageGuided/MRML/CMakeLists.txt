@@ -10,11 +10,15 @@ set(${KIT}_INCLUDE_DIRECTORIES
 set(${KIT}_SRCS
   vtkMRMLPercutaneousImageGuidedParameterNode.cxx
   vtkMRMLPercutaneousImageGuidedParameterNode.h
+  vtkMRMLIGTLSessionManagerNode.cxx
+  vtkMRMLIGTLSessionManagerNode.h
 )
 
 set(${KIT}_TARGET_LIBRARIES
   ${ITK_LIBRARIES}
   ${MRML_LIBRARIES}
+  vtkSlicerOpenIGTLinkIFModuleMRML
+  vtkSlicerAnnotationsModuleMRML
   )
 
 #-----------------------------------------------------------------------------
