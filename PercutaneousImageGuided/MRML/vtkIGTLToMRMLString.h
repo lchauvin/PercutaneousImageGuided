@@ -18,7 +18,7 @@ class VTK_SLICER_PERCUTANEOUSIMAGEGUIDED_MODULE_MRML_EXPORT vtkIGTLToMRMLString 
  public:
 
   static vtkIGTLToMRMLString *New();
-  vtkTypeRevisionMacro(vtkIGTLToMRMLString,vtkObject);
+  vtkTypeMacro(vtkIGTLToMRMLString,vtkObject);
 
   void PrintSelf(ostream& os, vtkIndent indent);
 
