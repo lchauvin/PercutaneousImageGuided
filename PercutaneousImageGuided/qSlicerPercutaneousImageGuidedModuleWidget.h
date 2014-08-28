@@ -18,6 +18,9 @@
 #ifndef __qSlicerPercutaneousImageGuidedModuleWidget_h
 #define __qSlicerPercutaneousImageGuidedModuleWidget_h
 
+#include "vtkMRMLRobotModelNode.h"
+#include "vtkSlicerModuleLogic.h"
+
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
 
@@ -56,11 +59,13 @@ public:
 public slots:
   // Parameter Nodes
   void setActiveParameterNode(vtkMRMLPercutaneousImageGuidedParameterNode* activeNode);
+  vtkMRMLPercutaneousImageGuidedParameterNode* getActiveParameterNode();
 
   // Setup
   void onConnectClicked();
   void onConnectorNodeConnected();
   void onConnectorNodeDisconnected();
+  void onRobotModelChanged(vtkMRMLNode* node);
   
   // Change step buttons
   void onPreRegButtonToggled(bool pressed);

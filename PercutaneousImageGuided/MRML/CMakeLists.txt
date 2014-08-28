@@ -12,6 +12,8 @@ set(${KIT}_SRCS
   vtkMRMLPercutaneousImageGuidedParameterNode.h
   vtkMRMLIGTLSessionManagerNode.cxx
   vtkMRMLIGTLSessionManagerNode.h
+  vtkMRMLRobotModelNode.cxx
+  vtkMRMLRobotModelNode.h
 )
 
 set(${KIT}_TARGET_LIBRARIES

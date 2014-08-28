@@ -18,6 +18,13 @@
 
 ==============================================================================*/
 
+#include "qSlicerCoreApplication.h"
+#include "qSlicerCorePythonManager.h"
+
+#include "vtkMRMLScalarVolumeNode.h"
+#include "vtkMRMLMarkupsFiducialNode.h"
+#include "vtkMRMLRobotModelNode.h"
+
 // Registration Widgets includes
 #include "qSlicerPercutaneousImageGuidedRegistrationWidget.h"
 #include "ui_qSlicerPercutaneousImageGuidedRegistrationWidget.h"
@@ -25,6 +32,8 @@
 #include "vtkSlicerConfigure.h"
 
 #include "vtkMRMLPercutaneousImageGuidedParameterNode.h"
+
+#include <QMessageBox>
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_PercutaneousImageGuided
@@ -77,6 +86,9 @@ qSlicerPercutaneousImageGuidedRegistrationWidget
 {
   Q_D(qSlicerPercutaneousImageGuidedRegistrationWidget);
   d->setupUi(this);
+
+  connect(d->RegisterRobotButton, SIGNAL(clicked()),
+	  this, SLOT(onRegisterButtonClicked()));
 }
 
 //-----------------------------------------------------------------------------
@@ -119,6 +131,64 @@ vtkMRMLPercutaneousImageGuidedParameterNode* qSlicerPercutaneousImageGuidedRegis
 void qSlicerPercutaneousImageGuidedRegistrationWidget::refreshWidget()
 {
   std::cerr << "Udpate Registration Widget" << std::endl;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerPercutaneousImageGuidedRegistrationWidget::onRegisterButtonClicked()
+{
+  Q_D(qSlicerPercutaneousImageGuidedRegistrationWidget);
+
+  vtkMRMLScalarVolumeNode* selectedVolume = 
+    vtkMRMLScalarVolumeNode::SafeDownCast(d->RegistrationImageSelector->currentNode());
+
+  vtkMRMLMarkupsFiducialNode* selectedFiducials =
+    vtkMRMLMarkupsFiducialNode::SafeDownCast(d->RegistrationFiducialListSelector->currentNode());
+
+  vtkSmartPointer<vtkMRMLLinearTransformNode> registrationTransform =
+    vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
+
+  if (selectedVolume && selectedFiducials && registrationTransform)
+    {
+    this->mrmlScene()->AddNode(registrationTransform);
+
+    qSlicerCorePythonManager* pythonManager = qSlicerCoreApplication::application()->corePythonManager();
+    if (pythonManager)
+      {
+      // Run registration module FiducialToImageRegistration (python)
+      QString pythonScript("reg = FiducialToImageRegistrationLogic();"
+			   "ret = reg.run('%1','%2','%3')");
+      pythonScript = pythonScript.arg(selectedVolume->GetID(), 
+				      selectedFiducials->GetID(), 
+				      registrationTransform->GetID());
+
+      pythonManager->executeString(pythonScript);
+      QVariant registrationSucceed = pythonManager->getVariable("ret");
+
+      if (registrationSucceed.toBool())
+	{
+	// Register robot model node
+	if (d->activeParamNode && this->getActiveParameterNode()->GetRobotModelNodeID())
+	  {
+	  vtkMRMLRobotModelNode* robotModelNode = 
+	    vtkMRMLRobotModelNode::SafeDownCast(this->mrmlScene()->GetNodeByID(this->getActiveParameterNode()->GetRobotModelNodeID()));
+	  
+	  if (robotModelNode)
+	    {
+	    robotModelNode->SetAndObserveTransformNodeID(registrationTransform->GetID());
+	    }
+	  }
+	
+	// Update registration node ID
+	d->activeParamNode->SetAndObserveRegistrationNodeID(registrationTransform->GetID());
+
+	QMessageBox::information(this,"Registration","Registration Succeed");
+	}
+      else
+	{
+	QMessageBox::critical(this,"Registration","Registration Failed");
+	}
+      }
+    }
 }
 
 

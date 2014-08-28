@@ -22,7 +22,13 @@
     </widget>
    </item>
    <item>
-    <widget class="qMRMLNodeComboBox" name="RegistrationImageSelector"/>
+    <widget class="qMRMLNodeComboBox" name="RegistrationImageSelector">
+     <property name="nodeTypes">
+      <stringlist>
+       <string>vtkMRMLScalarVolumeNode</string>
+      </stringlist>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QLabel" name="label_2">
@@ -32,7 +38,13 @@
     </widget>
    </item>
    <item>
-    <widget class="qMRMLNodeComboBox" name="RegistrationFiducialListSelector"/>
+    <widget class="qMRMLNodeComboBox" name="RegistrationFiducialListSelector">
+     <property name="nodeTypes">
+      <stringlist>
+       <string>vtkMRMLMarkupsFiducialNode</string>
+      </stringlist>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QPushButton" name="RegisterRobotButton">
@@ -94,5 +106,38 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>qSlicerPercutaneousImageGuidedRegistrationWidget</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>RegistrationImageSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>50</x>
+     <y>280</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>58</x>
+     <y>51</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerPercutaneousImageGuidedRegistrationWidget</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>RegistrationFiducialListSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>266</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>141</x>
+     <y>96</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

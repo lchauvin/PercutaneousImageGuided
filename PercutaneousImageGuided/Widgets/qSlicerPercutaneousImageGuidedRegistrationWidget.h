@@ -45,6 +45,7 @@ public:
 
 public slots:
   void refreshWidget();
+  void onRegisterButtonClicked();
 
 protected:
   QScopedPointer<qSlicerPercutaneousImageGuidedRegistrationWidgetPrivate> d_ptr;

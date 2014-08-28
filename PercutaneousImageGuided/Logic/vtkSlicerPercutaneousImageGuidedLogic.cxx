@@ -21,6 +21,7 @@
 // MRML includes
 #include "vtkMRMLIGTLSessionManagerNode.h"
 #include "vtkMRMLPercutaneousImageGuidedParameterNode.h"
+#include "vtkMRMLRobotModelNode.h"
 #include <vtkMRMLScene.h>
 
 // VTK includes
@@ -72,6 +73,10 @@ void vtkSlicerPercutaneousImageGuidedLogic::RegisterNodes()
   vtkSmartPointer<vtkMRMLIGTLSessionManagerNode> sessionManagerNode =
     vtkSmartPointer<vtkMRMLIGTLSessionManagerNode>::New();
   this->GetMRMLScene()->RegisterNodeClass(sessionManagerNode.GetPointer());
+
+  vtkSmartPointer<vtkMRMLRobotModelNode> robotModelNode =
+    vtkSmartPointer<vtkMRMLRobotModelNode>::New();
+  this->GetMRMLScene()->RegisterNodeClass(robotModelNode.GetPointer());
 }
 
 //---------------------------------------------------------------------------

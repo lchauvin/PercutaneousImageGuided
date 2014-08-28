@@ -59,6 +59,9 @@ public:
   void setActiveParamNode(vtkMRMLPercutaneousImageGuidedParameterNode* active) { this->ActiveParamNode = active; } 
   vtkMRMLPercutaneousImageGuidedParameterNode* getActiveParamNode() { return this->ActiveParamNode; }
 
+  void setRobotModelNode(vtkMRMLRobotModelNode* robotNode) { this->RobotModelNode = robotNode; }
+  vtkMRMLRobotModelNode* getRobotModelNode() { return this->RobotModelNode; }
+
 private:
   vtkMRMLIGTLConnectorNode* IGTLConnectorNode;
   vtkMRMLIGTLSessionManagerNode* IGTLSessionManagerNode;
@@ -68,6 +71,8 @@ private:
   vtkMRMLPercutaneousImageGuidedParameterNode* PostRegParamNode;
   vtkMRMLPercutaneousImageGuidedParameterNode* PostInsParamNode;
   vtkMRMLPercutaneousImageGuidedParameterNode* ActiveParamNode;
+
+  vtkMRMLRobotModelNode* RobotModelNode;
 };	      
 	      
 //-----------------------------------------------------------------------------
@@ -84,6 +89,8 @@ qSlicerPercutaneousImageGuidedModuleWidgetPrivate::qSlicerPercutaneousImageGuide
   this->PostRegParamNode = NULL;
   this->PostInsParamNode = NULL;
   this->ActiveParamNode  = NULL;
+
+  this->RobotModelNode   = NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -141,6 +148,9 @@ void qSlicerPercutaneousImageGuidedModuleWidget::setup()
   // Setup
   connect(d->ConnectButton, SIGNAL(clicked()),
 	  this, SLOT(onConnectClicked()));
+
+  connect(d->RobotModelNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
+	  this, SLOT(onRobotModelChanged(vtkMRMLNode*)));
 
   // Steps
   connect(d->PreRegButton, SIGNAL(toggled(bool)),
@@ -204,6 +214,14 @@ void qSlicerPercutaneousImageGuidedModuleWidget::setActiveParameterNode(vtkMRMLP
     d->RobotWidget->setActiveParameterNode(activeNode);
     d->ResliceWidget->setActiveParameterNode(activeNode);
     }
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLPercutaneousImageGuidedParameterNode* qSlicerPercutaneousImageGuidedModuleWidget::getActiveParameterNode()
+{
+  Q_D(qSlicerPercutaneousImageGuidedModuleWidget);
+
+  return d->getActiveParamNode();
 }
 
 //-----------------------------------------------------------------------------
@@ -316,6 +334,32 @@ void qSlicerPercutaneousImageGuidedModuleWidget::onConnectorNodeDisconnected()
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerPercutaneousImageGuidedModuleWidget::onRobotModelChanged(vtkMRMLNode* node)
+{
+  Q_D(qSlicerPercutaneousImageGuidedModuleWidget); 
+
+  vtkMRMLRobotModelNode* robotNode = 
+    vtkMRMLRobotModelNode::SafeDownCast(node);
+
+  vtkSlicerModuleLogic* moduleLogic =
+    vtkSlicerModuleLogic::SafeDownCast(this->logic());
+
+  if (moduleLogic && robotNode)
+    {    
+    robotNode->SetSharedDirectoryPath(moduleLogic->GetModuleShareDirectory().c_str());
+    robotNode->SetNeedleLength("175mm");
+    d->setRobotModelNode(robotNode);
+
+    vtkMRMLPercutaneousImageGuidedParameterNode* registrationNode =
+      d->getRegParamNode();
+    if (registrationNode)
+      {
+      registrationNode->SetAndObserveRobotModelNodeID(robotNode->GetID());
+      }
+    }
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerPercutaneousImageGuidedModuleWidget::onPreRegButtonToggled(bool pressed)
 {
   Q_D(qSlicerPercutaneousImageGuidedModuleWidget);
@@ -376,6 +420,10 @@ void qSlicerPercutaneousImageGuidedModuleWidget::onRegButtonToggled(bool pressed
       regNode->SetName("RegistrationParameterNode");
       d->setRegParamNode(regNode);
       this->mrmlScene()->AddNode(regNode);
+      if (d->getRobotModelNode())
+	{
+	regNode->SetAndObserveRobotModelNodeID(d->getRobotModelNode()->GetID());
+	}
       }
     }
 
